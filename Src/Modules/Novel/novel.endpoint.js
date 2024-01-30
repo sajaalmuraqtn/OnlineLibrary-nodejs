@@ -4,5 +4,7 @@ export const endPoint={
     create:roles.User,
     update:roles.User,
     delete:roles.User,
-    publish: roles.User
+    sendDeleteNovelCode: roles.User,
+    publish: roles.User,
+    myNovels: roles.User
 }

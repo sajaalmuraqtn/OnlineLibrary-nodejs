@@ -17,9 +17,9 @@ const commentSchema=new Schema(
             require:true
         }
     },{
-        timestamps:true
+        timestamps:true 
     }
-)
-
+) 
+ 
 const CommentModel=mongoose.models.Comment||model('Comment',commentSchema);
 export default CommentModel;

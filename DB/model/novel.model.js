@@ -4,9 +4,10 @@ const NovelSchema = new Schema(
     {
         title: {
             type: String,
-            required: true
+            required: true,
+            unique: true
         },
-        text: {
+        slug: {
             type: String,
             required: true
         },
@@ -14,34 +15,51 @@ const NovelSchema = new Schema(
             type: String,
             required: true
         },
-        image:{
-            type:Object,
-            required:true,
+        image: {
+            type: Object,
+            required: true,
         },
-        readers:[{
-            type: Types.ObjectId,
-            ref: 'User'
-        }],
+        readersCount: {
+            type: Number,
+            required: true,
+            default: 0
+        },
+        favoritesCount: {
+            type: Number,
+            required: true,
+            default: 0
+        },
+        status: {
+            type: String,
+            enum: ['Publish', 'Draft'],
+            default: 'Draft'
+        },
         type: {
             type: String,
-            enum: ['Emotional', 'Horror','Action', 'Kiddrama','Historical'],
+            enum: ['none', "Emotional", "Horror", "Action", "Historical", "School"],
             default: 'none'
-        }, 
-        library:[{
-            image:{
-                type:Object,
-                required:true,
-            },
-        }],   
-        userId: {
+        },
+        deleteCode:{
+            type: String,
+            default: null
+        },
+        createdBy: {
             type: Types.ObjectId,
             ref: 'User',
             required: true
         }
-    }, {
-    timestamps: true
-}
+    },
+    {
+        timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true }
+    }
 )
 
+NovelSchema.virtual('Parts', {
+    localField: '_id',
+    foreignField: 'novelId',
+    ref: 'Part'
+})
 const NovelModel = mongoose.models.Novel || model('Novel', NovelSchema);
 export default NovelModel;

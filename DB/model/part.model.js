@@ -13,15 +13,30 @@ const PartSchema = new Schema(
         image: {
             type: Object
         },
-        readers:[{
+        readers: [{
             type: Types.ObjectId,
             ref: 'User'
         }],
-        userId: {
+        createdBy: {
             type: Types.ObjectId,
             ref: 'User',
             require: true
         },
+        status: {
+            type: String,
+            enum: ['Publish', 'Draft'],
+            default: 'Draft'
+        },
+        deleteCode: {
+            type: String,
+            default: null
+        },
+        likes: [
+            {
+                type: Types.ObjectId,
+                ref: 'User'
+            }
+        ],
         novelId: {
             type: Types.ObjectId,
             ref: 'Novel',
