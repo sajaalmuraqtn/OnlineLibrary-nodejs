@@ -67,13 +67,10 @@ export const sendDeleteNovelCode = async (req, res, next) => {
 
 export const deleteNovel = async (req, res, next) => {
     const deleteCode = req.body.deleteCode;
-    const deleteNovel = await NovelModel.findOne({ _id: req.params.id, createdBy: req.user._id });
-    if (!deleteNovel) {
+    const deleteNovel = await NovelModel.findOneAndDelete({ _id: req.params.id, createdBy: req.user._id,deleteCode });
+   
+    if (! deleteNovel) {
         return next(new Error("novel not found", { cause: 404 }));
-    }
-    {
-
-    }
-    return res.status(201).json({ message: 'success', });
-
+    }    
+    return res.status(201).json({ message: 'success', deleteNovel});
 }                           
