@@ -6,6 +6,10 @@ const PartSchema = new Schema(
             type: String,
             require: true
         },
+        slug: {
+            type: String,
+            required: true
+        },
         text: {
             type: String,
             require: true

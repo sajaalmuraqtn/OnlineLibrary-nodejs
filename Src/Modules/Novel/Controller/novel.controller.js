@@ -11,6 +11,7 @@ export const createNovel = async (req, res, next) => {
     if (await NovelModel.findOne({ title }).select('title')) {
         return next(new Error("title already exist", { cause: 409 }));
     }
+    req.body.title = title;
     req.body.slug = slugify(title);
     const { secure_url, public_id } = await cloudinary.uploader.upload(req.file.path, {
         folder: `${process.env.APP_NAME}/novel/image`
@@ -20,6 +21,44 @@ export const createNovel = async (req, res, next) => {
     const novel = await NovelModel.create(req.body);
     return res.status(201).json({ message: 'success', novel });
 }
+
+
+export const updateNovel = async (req, res, next) => {
+    const Novel = await NovelModel.findOne({ _id: req.params.id, createdBy: req.user._id })
+    if (!Novel) {
+        return next(new Error("can not found the novel", { cause: 404 }));
+    }
+    if (req.body.title) {
+        const title = req.body.title.toLowerCase();
+
+        if (title == Novel.title) {
+            return next(new Error("title never change", { cause: 409 }));
+        }
+        console.log(await NovelModel.findOne({ title }).select('title'));
+        if (await NovelModel.findOne({ title }).select('title')) {
+            return next(new Error("title already exist", { cause: 409 }));
+        }
+        Novel.title = title;
+        Novel.slug = slugify(title);
+    }
+    if (req.file) {
+        const { secure_url, public_id } = await cloudinary.uploader.upload(req.file.path, {
+            folder: `${process.env.APP_NAME}/novel/image`
+        });
+        await cloudinary.uploader.destroy(category.image.public_id);
+        Novel.image = { secure_url, public_id };
+    }
+     if (req.body.description) {
+        Novel.description = req.body.description;
+    }
+     if (req.body.type) {
+        Novel.type = req.body.type;
+    }
+    await Novel.save()
+
+    return res.status(201).json({ message: 'success', Novel });
+}
+
 
 export const getAllPublishNovels = async (req, res, next) => {
     const novels = await NovelModel.find({ status: 'Publish' });
@@ -49,7 +88,7 @@ export const publishNovel = async (req, res, next) => {
 
 export const unPublishNovel = async (req, res, next) => {
     const unPublishNovel = await NovelModel.findOneAndUpdate({ createdBy: req.user._id, _id: req.params.id }, { status: 'Draft' }, { new: true });
-    const unPublishParts = await PartModel.findOneAndUpdate({ createdBy: req.user._id, novelId: req.params.id }, { status: 'Draft' }, { new: true });
+    const unPublishParts = await PartModel.updateMany({ createdBy: req.user._id, novelId: req.params.id }, { status: 'Draft' }, { new: true });
     return res.status(201).json({ message: 'success', unPublishNovel });
 }
 
@@ -67,10 +106,11 @@ export const sendDeleteNovelCode = async (req, res, next) => {
 
 export const deleteNovel = async (req, res, next) => {
     const deleteCode = req.body.deleteCode;
-    const deleteNovel = await NovelModel.findOneAndDelete({ _id: req.params.id, createdBy: req.user._id,deleteCode });
-   
-    if (! deleteNovel) {
+    const deleteNovel = await NovelModel.findOneAndDelete({ _id: req.params.id, createdBy: req.user._id, deleteCode });
+    const deleteParts = await PartModel.deleteMany({ createdBy: req.user._id, novelId: req.params.id });
+
+    if (!deleteNovel) {
         return next(new Error("novel not found", { cause: 404 }));
-    }    
-    return res.status(201).json({ message: 'success', deleteNovel});
+    }
+    return res.status(201).json({ message: 'success', deleteNovel, deleteParts });
 }                           
