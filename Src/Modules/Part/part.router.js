@@ -2,18 +2,18 @@ import { Router } from "express";
 import * as PartController from './Controller/part.controller.js'
 import fileUpload, { fileValidation } from "../../Services/multer.js";
 import { asyncHandler } from "../../Services/errorHandling.js";
-import { endPoint } from "./part.endpoint.js";
-import { auth } from "../../Middleware/auth.js";
+import { endPoint } from "./part.endpoint.js"; 
+import { auth, roles } from "../../Middleware/auth.js";
 const router=Router({mergeParams:true});
 
 
-router.post('/',auth(endPoint.create),fileUpload(fileValidation.image).single('image'),asyncHandler(PartController.createPart));
-router.put('/:id',auth(endPoint.update),fileUpload(fileValidation.image).single('image'),asyncHandler(PartController.createNovel));
-router.get('/',asyncHandler(PartController.getAllPublishNovels));
-router.get('/MyNovels/:id',auth(endPoint.myNovels),asyncHandler(PartController.getMyNovels));
-router.patch('/publish/:id',auth(endPoint.publish),asyncHandler(PartController.publishNovel));
-router.patch('/unPublish/:id',auth(endPoint.publish),asyncHandler(PartController.unPublishNovel));
-router.get('/:id',auth(endPoint.create),asyncHandler(PartController.getSpecificNovel)); 
-router.patch('/sendDeleteNovelCode/:id',auth(endPoint.sendDeleteNovelCode),asyncHandler(PartController.sendDeleteNovelCode)); 
-router.delete('/deleteNovel/:id',auth(endPoint.delete),asyncHandler(PartController.deleteNovel)); 
-export default router;
+router.post('/',auth(endPoint.create),fileUpload(fileValidation.image).single('image') ,asyncHandler(PartController.createPart));
+router.put('/:partId',auth(endPoint.update),fileUpload(fileValidation.image).single('image'),asyncHandler(PartController.updatePart));
+router.get('/',auth(Object.values(roles)),asyncHandler(PartController.getAllPart)); 
+router.patch('/publish/:partId',auth(endPoint.publish),asyncHandler(PartController.publishPart));
+router.patch('/unPublish/:partId',auth(endPoint.publish),asyncHandler(PartController.unPublishPart));
+router.patch('/likeUnlike/:partId',auth(Object.values(roles)),asyncHandler(PartController.likeUnlike));
+router.get('/:partId',auth(Object.values(roles)),asyncHandler(PartController.getSpecificPart)); 
+router.patch('/sendDeletePartCode/:partId',auth(endPoint.sendDeletePartCode),asyncHandler(PartController.sendDeletePartCode)); 
+router.delete('/deletePart/:partId',auth(endPoint.delete),asyncHandler(PartController.deletePart)); 
+export default router; 

@@ -35,6 +35,10 @@ const PartSchema = new Schema(
             type: String,
             default: null
         },
+        likesNumber:{
+            type:Number,
+            default:0
+        },
         likes: [
             {
                 type: Types.ObjectId,

@@ -24,7 +24,7 @@ export const createNovel = async (req, res, next) => {
 
 
 export const updateNovel = async (req, res, next) => {
-    const Novel = await NovelModel.findOne({ _id: req.params.id, createdBy: req.user._id })
+    const Novel = await NovelModel.findOne({ _id: req.params.novelId, createdBy: req.user._id })
     if (!Novel) {
         return next(new Error("can not found the novel", { cause: 404 }));
     }
@@ -66,7 +66,7 @@ export const getAllPublishNovels = async (req, res, next) => {
 }
 
 export const getMyNovels = async (req, res, next) => {
-    const novels = await NovelModel.find({ createdBy: req.params.id });
+    const novels = await NovelModel.find({ createdBy: req.params.userId });
     if (novels.length == 0) {
         return next(new Error("You haven't created any novels yet", { cause: 400 }));
     }
@@ -74,7 +74,7 @@ export const getMyNovels = async (req, res, next) => {
 }
 
 export const getSpecificNovel = async (req, res, next) => {
-    const novel = await NovelModel.findById(req.params.id);
+    const novel = await NovelModel.findById(req.params.novelId);
     if (!novel) {
         return next(new Error("novel not found", { cause: 404 }));
     }
@@ -82,13 +82,13 @@ export const getSpecificNovel = async (req, res, next) => {
 }
 
 export const publishNovel = async (req, res, next) => {
-    const PublishNovel = await NovelModel.findOneAndUpdate({ createdBy: req.user._id, _id: req.params.id }, { status: 'Publish' }, { new: true });
+    const PublishNovel = await NovelModel.findOneAndUpdate({ createdBy: req.user._id, _id: req.params.novelId }, { status: 'Publish' }, { new: true });
     return res.status(201).json({ message: 'success', PublishNovel });
 }
 
 export const unPublishNovel = async (req, res, next) => {
-    const unPublishNovel = await NovelModel.findOneAndUpdate({ createdBy: req.user._id, _id: req.params.id }, { status: 'Draft' }, { new: true });
-    const unPublishParts = await PartModel.updateMany({ createdBy: req.user._id, novelId: req.params.id }, { status: 'Draft' }, { new: true });
+    const unPublishNovel = await NovelModel.findOneAndUpdate({ createdBy: req.user._id, _id: req.params.novelId }, { status: 'Draft' }, { new: true });
+    const unPublishParts = await PartModel.updateMany({ createdBy: req.user._id, novelId: req.params.novelId }, { status: 'Draft' }, { new: true });
     return res.status(201).json({ message: 'success', unPublishNovel });
 }
 
@@ -100,14 +100,14 @@ export const sendDeleteNovelCode = async (req, res, next) => {
 
     const html = `<h2>delete novel code : ${code}</h2>`
     sendEmail(email, 'delete novel code', html);
-    await NovelModel.findOneAndUpdate({ createdBy: req.user._id, _id: req.params.id }, { deleteCode: code }, { new: true });
+    await NovelModel.findOneAndUpdate({ createdBy: req.user._id, _id: req.params.novelId }, { deleteCode: code }, { new: true });
     return res.redirect(process.env.FORGOTPASSWORDFORM);
 }
 
 export const deleteNovel = async (req, res, next) => {
     const deleteCode = req.body.deleteCode;
-    const deleteNovel = await NovelModel.findOneAndDelete({ _id: req.params.id, createdBy: req.user._id, deleteCode });
-    const deleteParts = await PartModel.deleteMany({ createdBy: req.user._id, novelId: req.params.id });
+    const deleteNovel = await NovelModel.findOneAndDelete({ _id: req.params.novelId, createdBy: req.user._id, deleteCode });
+    const deleteParts = await PartModel.deleteMany({ createdBy: req.user._id, novelId: req.params.novelId });
 
     if (!deleteNovel) {
         return next(new Error("novel not found", { cause: 404 }));

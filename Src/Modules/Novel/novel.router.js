@@ -10,13 +10,13 @@ const router = Router();
 
 router.use('/:novelId/Part', PartRouter);
 router.post('/', auth(endPoint.create), fileUpload(fileValidation.image).single('image'), asyncHandler(NovelController.createNovel)); 
-router.put('/:id', auth(endPoint.update), fileUpload(fileValidation.image).single('image'), asyncHandler(NovelController.updateNovel));
+router.put('/:novelId', auth(endPoint.update), fileUpload(fileValidation.image).single('image'), asyncHandler(NovelController.updateNovel));
  router.get('/', asyncHandler(NovelController.getAllPublishNovels));
-router.get('/MyNovels/:id', auth(endPoint.myNovels), asyncHandler(NovelController.getMyNovels));
-router.patch('/publish/:id', auth(endPoint.publish), asyncHandler(NovelController.publishNovel));
-router.patch('/unPublish/:id', auth(endPoint.publish), asyncHandler(NovelController.unPublishNovel));
+router.get('/MyNovels/:userId', auth(endPoint.myNovels), asyncHandler(NovelController.getMyNovels));
+router.patch('/publish/:novelId', auth(endPoint.publish), asyncHandler(NovelController.publishNovel));
+router.patch('/unPublish/:novelId', auth(endPoint.publish), asyncHandler(NovelController.unPublishNovel));
 router.get('/:id', auth(endPoint.create), asyncHandler(NovelController.getSpecificNovel));
-router.patch('/sendDeleteNovelCode/:id', auth(endPoint.sendDeleteNovelCode), asyncHandler(NovelController.sendDeleteNovelCode));
-router.delete('/deleteNovel/:id', auth(endPoint.delete), asyncHandler(NovelController.deleteNovel));
+router.patch('/sendDeleteNovelCode/:novelId', auth(endPoint.sendDeleteNovelCode), asyncHandler(NovelController.sendDeleteNovelCode));
+router.delete('/deleteNovel/:novelId', auth(endPoint.delete), asyncHandler(NovelController.deleteNovel));
 
 export default router
