@@ -4,6 +4,7 @@ import cloudinary from "../../../Services/cloudinary.js";
 import { customAlphabet } from "nanoid";
 import { sendEmail } from '../../../Services/email.js';
 import PartModel from "../../../../DB/model/part.model.js";
+import UserModel from "../../../../DB/model/user.model.js";
 
 
 export const createNovel = async (req, res, next) => {
@@ -18,10 +19,10 @@ export const createNovel = async (req, res, next) => {
     });
     req.body.image = { secure_url, public_id };
     req.body.createdBy = req.user._id;
+    req.body.createdByName = req.user.userName;
     const novel = await NovelModel.create(req.body);
     return res.status(201).json({ message: 'success', novel });
 }
-
 
 export const updateNovel = async (req, res, next) => {
     const Novel = await NovelModel.findOne({ _id: req.params.novelId, createdBy: req.user._id })
@@ -48,10 +49,10 @@ export const updateNovel = async (req, res, next) => {
         await cloudinary.uploader.destroy(category.image.public_id);
         Novel.image = { secure_url, public_id };
     }
-     if (req.body.description) {
+    if (req.body.description) {
         Novel.description = req.body.description;
     }
-     if (req.body.type) {
+    if (req.body.type) {
         Novel.type = req.body.type;
     }
     await Novel.save()
@@ -59,14 +60,13 @@ export const updateNovel = async (req, res, next) => {
     return res.status(201).json({ message: 'success', Novel });
 }
 
-
 export const getAllPublishNovels = async (req, res, next) => {
-    const novels = await NovelModel.find({ status: 'Publish' });
+    const novels = await NovelModel.find({ status: 'Publish' }).select("image title createdByName");;
     return res.status(201).json({ message: 'success', novels });
 }
 
 export const getMyNovels = async (req, res, next) => {
-    const novels = await NovelModel.find({ createdBy: req.params.userId });
+    const novels = await NovelModel.find({ createdBy: req.params.userId }).select("image title createdByName");
     if (novels.length == 0) {
         return next(new Error("You haven't created any novels yet", { cause: 400 }));
     }
@@ -79,6 +79,16 @@ export const getSpecificNovel = async (req, res, next) => {
         return next(new Error("novel not found", { cause: 404 }));
     }
     return res.status(201).json({ message: 'success', novel });
+}
+
+export const addNovelToMyLibrary = async (req, res, next) => {
+    const novel = await NovelModel.findById(req.params.novelId);
+    if (!novel) {
+        return next(new Error("novel not found", { cause: 404 }));
+    }
+
+    const user = await UserModel.findByIdAndUpdate(req.user._id, { $addToSet: { library: { image: novel.image, title: novel.title, createdBy: novel.createdBy, createdByName: novel.createdByName,novelId:req.params.novelId} } })
+    return res.status(201).json({ message: 'success',library: user.library });
 }
 
 export const publishNovel = async (req, res, next) => {

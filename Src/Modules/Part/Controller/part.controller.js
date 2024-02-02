@@ -78,14 +78,7 @@ export const getAllPart = async (req, res, next) => {
     }
     return res.status(201).json({ message: 'success', Parts });
 }
-
-export const getMyParts = async (req, res, next) => {
-    const novels = await PartModel.find({ createdBy: req.params.partId });
-    if (novels.length == 0) {
-        return next(new Error("You haven't created any novels yet", { cause: 400 }));
-    }
-    return res.status(201).json({ message: 'success', novels });
-}
+ 
 
 export const getSpecificPart = async (req, res, next) => {
     const novel = await NovelModel.findById(req.params.novelId);
@@ -133,7 +126,7 @@ export const likeUnlike = async (req, res, next) => {
 
     const part = await PartModel.findOne({ _id: req.params.partId, novelId: req.params.novelId });
     if (part.status == 'Draft') {
-        return next(new Error("can not like publish part, part should publish first", { cause: 400 }));
+        return next(new Error("can not like Draft part, part should publish first", { cause: 400 }));
     }
 
     if (!part.readers.includes(req.user._id)) {
@@ -154,6 +147,10 @@ export const likeUnlike = async (req, res, next) => {
 }
 
 export const sendDeletePartCode = async (req, res, next) => {
+    const novel = await NovelModel.findOne({ _id: req.params.novelId, createdBy: req.user._id });
+    if (!novel) {
+        return next(new Error("novel not found", { cause: 404 }));
+    }
     const email = req.user.email;// to send email to the person 
 
     let code = customAlphabet('123456789abcdzABCDZ', 4);
@@ -161,7 +158,7 @@ export const sendDeletePartCode = async (req, res, next) => {
 
     const html = `<h2>delete Part code : ${code}</h2>`
     sendEmail(email, 'delete Part code', html);
-    await PartModel.findOneAndUpdate({ createdBy: req.user._id, _id: req.params.partId }, { deleteCode: code }, { new: true });
+    await PartModel.findOneAndUpdate({ createdBy: req.user._id, _id: req.params.partId,novelId:req.params.novelId}, { deleteCode: code }, { new: true });
     return res.redirect(process.env.FORGOTPASSWORDFORM);
 }
 

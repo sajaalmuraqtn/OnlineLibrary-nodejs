@@ -45,6 +45,11 @@ const UserSchema = new Schema({
         enum: ['User', 'Admin'],
         default: 'User'
     }, library: [{
+        novelId:{
+            type: Types.ObjectId,
+            ref: 'Novel',
+            required: true
+        },
         image: {
             type: Object,
             required: true,
@@ -55,6 +60,11 @@ const UserSchema = new Schema({
         },
         createdBy: {
             type: Types.ObjectId,
+            ref: 'User',
+            required: true
+        },
+        createdByName: {
+            type:String,
             ref: 'User',
             required: true
         }

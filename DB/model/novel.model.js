@@ -47,6 +47,11 @@ const NovelSchema = new Schema(
             type: Types.ObjectId,
             ref: 'User',
             required: true
+        },
+        createdByName: {
+            type:String,
+            ref: 'User',
+            required: true
         }
     },
     {
