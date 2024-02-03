@@ -5,6 +5,8 @@ import UserRouter from './User/user.router.js'
 import NovelRouter from './Novel/novel.router.js'
 import CommentRouter from './Comment/comment.router.js'
 import PartRouter from './Part/part.router.js'
+import ReadingListRouter from './ReadingList/readingList.router.js'
+
 
 import ConnectDB from '../../DB/connection.js';
 
@@ -21,6 +23,7 @@ app.use('/user',UserRouter);
 app.use('/novel',NovelRouter);
 app.use('/comment',CommentRouter);
 app.use('/part',PartRouter);
+app.use('/readingList',ReadingListRouter);
 
 app.get('*',(req,res)=>{
     return res.json({message:'page not found'})

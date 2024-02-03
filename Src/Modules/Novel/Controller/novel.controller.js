@@ -86,10 +86,37 @@ export const addNovelToMyLibrary = async (req, res, next) => {
     if (!novel) {
         return next(new Error("novel not found", { cause: 404 }));
     }
+    const user = await UserModel.findById(req.user._id)
 
-    const user = await UserModel.findByIdAndUpdate(req.user._id, { $addToSet: { library: { image: novel.image, title: novel.title, createdBy: novel.createdBy, createdByName: novel.createdByName,novelId:req.params.novelId} } })
-    return res.status(201).json({ message: 'success',library: user.library });
+    /////////////////////////////////////////////////////
+
+    for (let index = 0; index < user.library.length; index++) {
+        if (user.library[index].novelId == req.params.novelId) {
+            return next(new Error("novel already exist in your library", { cause: 409 }));
+        }
+    }
+    user.library.push({ image: novel.image, title: novel.title, createdBy: novel.createdBy, createdByName: novel.createdByName, novelId: req.params.novelId });
+    await user.save();
+    return res.status(201).json({ message: 'success', library: user.library });
+
 }
+
+export const removeNovelFromMyLibrary = async (req, res, next) => {
+    const novel = await NovelModel.findById(req.params.novelId);
+    if (!novel) {
+        return next(new Error("novel not found", { cause: 404 }));
+    }
+    const user = await UserModel.findById(req.user._id)
+    
+    for (let index = 0; index < user.library.length; index++) {
+        if (user.library[index].novelId == req.params.novelId) {
+            const user = await UserModel.findByIdAndUpdate(req.user._id, { $pull: { library: { image: novel.image, title: novel.title, createdBy: novel.createdBy, createdByName: novel.createdByName, novelId: req.params.novelId } } },{new:true})
+            return res.status(201).json({ message: 'success', library: user.library });
+        }
+    }
+    return next(new Error("novel not exist in your library", { cause: 409 }));
+ }
+ 
 
 export const publishNovel = async (req, res, next) => {
     const PublishNovel = await NovelModel.findOneAndUpdate({ createdBy: req.user._id, _id: req.params.novelId }, { status: 'Publish' }, { new: true });
