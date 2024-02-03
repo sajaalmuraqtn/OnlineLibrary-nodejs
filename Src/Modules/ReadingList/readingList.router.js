@@ -6,9 +6,12 @@ import { auth, roles } from "../../Middleware/auth.js";
 const router = Router({ mergeParams: true });
 
 
-router.post(' /createReadingList', auth(Object.values(roles)), asyncHandler(ReadingListController.createReadingList));
-router.patch('/removeNovelFromReadingList', auth(Object.values(roles)), asyncHandler(ReadingListController.removeNovelFromReadingList));
-router.delete('/deleteNovelFromReadingList', auth(Object.values(roles)), asyncHandler(ReadingListController.deleteNovelFromReadingList));
+router.post('/createReadingList', auth(Object.values(roles)), asyncHandler(ReadingListController.createReadingList));
+router.patch('/addNovelToReadingList/:novelId', auth(Object.values(roles)), asyncHandler(ReadingListController.addNovelToReadingList));
+router.patch('/removeNovelFromReadingList/:novelId', auth(Object.values(roles)), asyncHandler(ReadingListController.removeNovelFromReadingList));
+router.get('/getMyReadingLists', auth(Object.values(roles)), asyncHandler(ReadingListController.getMyReadingLists));
+router.get('/getSpecificReadingLists/:readingListId', auth(Object.values(roles)), asyncHandler(ReadingListController.getSpecificReadingLists));
+router.delete('/deleteReadingList/:readingListId', auth(Object.values(roles)), asyncHandler(ReadingListController.deleteReadingList));
 
 
 

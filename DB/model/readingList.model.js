@@ -4,8 +4,8 @@ const ReadingListSchema = new Schema({
     createdBy: {
         type: Types.ObjectId, ref: 'User', required: true
     },
-    name:{
-        type: String, required: true 
+    name: {
+        type: String, required: true
     },
     novels: [
         {
@@ -13,9 +13,13 @@ const ReadingListSchema = new Schema({
             image: { type: Object, required: true },
             title: { type: String, required: true },
             createdByName: { type: String, required: true },
-       }
+        }
     ],
- }, {
+    novelsCount: {
+        type: Number,
+        default: 0
+    }
+}, {
     timestamps: true
 })
 

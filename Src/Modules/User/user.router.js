@@ -7,7 +7,7 @@ import { auth, roles } from "../../Middleware/auth.js";
 const router = Router({ mergeParams: true });
 
 
-router.use('/readingList', ReadingListRouter);
+router.use('/profile/readingList', ReadingListRouter);
 router.get('/profile', auth(Object.values(roles)), asyncHandler(UserController.profile)) ;
  
 export default router;

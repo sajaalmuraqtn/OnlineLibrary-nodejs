@@ -61,12 +61,12 @@ export const updateNovel = async (req, res, next) => {
 }
 
 export const getAllPublishNovels = async (req, res, next) => {
-    const novels = await NovelModel.find({ status: 'Publish' }).select("image title createdByName");;
+    const novels = await NovelModel.find({ status: 'Publish' });
     return res.status(201).json({ message: 'success', novels });
 }
 
 export const getMyNovels = async (req, res, next) => {
-    const novels = await NovelModel.find({ createdBy: req.params.userId }).select("image title createdByName");
+    const novels = await NovelModel.find({ createdBy: req.params.userId });
     if (novels.length == 0) {
         return next(new Error("You haven't created any novels yet", { cause: 400 }));
     }
