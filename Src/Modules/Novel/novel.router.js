@@ -17,7 +17,7 @@ router.patch('/addNovelToMyLibrary/:novelId', auth(Object.values(roles)), asyncH
 router.patch('/removeNovelFromMyLibrary/:novelId', auth(Object.values(roles)), asyncHandler(NovelController.removeNovelFromMyLibrary));
 router.patch('/publish/:novelId', auth(endPoint.publish), asyncHandler(NovelController.publishNovel));
 router.patch('/unPublish/:novelId', auth(endPoint.publish), asyncHandler(NovelController.unPublishNovel));
-router.get('/:id', auth(endPoint.create), asyncHandler(NovelController.getSpecificNovel));
+router.get('/:novelId', auth(endPoint.create), asyncHandler(NovelController.getSpecificNovel));
 router.patch('/sendDeleteNovelCode/:novelId', auth(endPoint.sendDeleteNovelCode), asyncHandler(NovelController.sendDeleteNovelCode));
 router.delete('/deleteNovel/:novelId', auth(endPoint.delete), asyncHandler(NovelController.deleteNovel));
 

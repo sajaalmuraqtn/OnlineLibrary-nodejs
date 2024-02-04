@@ -24,6 +24,11 @@ const NovelSchema = new Schema(
             required: true,
             default: 0
         },
+        partCount:{
+            type: Number,
+            required: true,
+            default: 0
+        },
         favoritesCount: {
             type: Number,
             required: true,
@@ -33,6 +38,10 @@ const NovelSchema = new Schema(
             type: String,
             enum: ['Publish', 'Draft'],
             default: 'Draft'
+        },
+        finish: {
+            type: Boolean,
+            default: 'false'
         },
         type: {
             type: String,

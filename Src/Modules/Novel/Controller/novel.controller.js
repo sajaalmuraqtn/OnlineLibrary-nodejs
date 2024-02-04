@@ -6,6 +6,7 @@ import { sendEmail } from '../../../Services/email.js';
 import PartModel from "../../../../DB/model/part.model.js";
 import UserModel from "../../../../DB/model/user.model.js";
 import CommentModel from "../../../../DB/model/comment.model.js";
+import { pagination } from "../../../Services/pagination.js";
 
 
 export const createNovel = async (req, res, next) => {
@@ -56,14 +57,40 @@ export const updateNovel = async (req, res, next) => {
     if (req.body.type) {
         Novel.type = req.body.type;
     }
+    if (req.body.finish) {
+        Novel.finish = req.body.finish;
+    }
     await Novel.save()
 
     return res.status(201).json({ message: 'success', Novel });
 }
 
 export const getAllPublishNovels = async (req, res, next) => {
-    const novels = await NovelModel.find({ status: 'Publish' });
-    return res.status(201).json({ message: 'success', novels });
+    
+    const { limit, skip } = pagination(req.query.page, req.query.limit);
+
+    let queryObj = { ...req.query };
+    const execQuery = ['page', 'limit', 'skip', 'sort', 'search','fields'];
+    execQuery.map((ele) => {
+        delete queryObj[ele];
+    })
+
+    const mongooseQuery = NovelModel.find(queryObj).limit(limit).skip(skip);
+    if (req.query.search) {
+        mongooseQuery.find({
+            $or: [
+                { title: { $regex: req.query.search, $options: 'i' } },
+                { description: { $regex: req.query.search, $options: 'i' } }
+            ]
+        })
+    }
+    if (req.query.fields) {
+        mongooseQuery.select(req.query.fields?.replaceAll(',', ' '))
+    }
+
+    const count = await NovelModel.estimatedDocumentCount();
+    const novels = await mongooseQuery.find({ status: 'Publish' }).sort(req.query.sort?.replaceAll(',', ' '));
+    return res.status(201).json({ message: 'success', novels,page: novels.length, total: count });
 }
 
 export const getMyNovels = async (req, res, next) => {
@@ -75,7 +102,8 @@ export const getMyNovels = async (req, res, next) => {
 }
 
 export const getSpecificNovel = async (req, res, next) => {
-    const novel = await NovelModel.findById(req.params.novelId);
+    console.log(req.params.novelId);
+    const novel = await NovelModel.findById(req.params.novelId).populate('Parts');
     if (!novel) {
         return next(new Error("novel not found", { cause: 404 }));
     }
@@ -127,7 +155,7 @@ export const publishNovel = async (req, res, next) => {
 export const unPublishNovel = async (req, res, next) => {
     const unPublishNovel = await NovelModel.findOneAndUpdate({ createdBy: req.user._id, _id: req.params.novelId }, { status: 'Draft' }, { new: true });
     const unPublishParts = await PartModel.updateMany({ createdBy: req.user._id, novelId: req.params.novelId }, { status: 'Draft' }, { new: true });
-    return res.status(201).json({ message: 'success', unPublishNovel });
+    return res.status(201).json({ message: 'success', unPublishNovel,unPublishParts });
 }
 
 export const sendDeleteNovelCode = async (req, res, next) => {

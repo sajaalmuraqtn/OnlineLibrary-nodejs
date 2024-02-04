@@ -87,7 +87,7 @@ export const getSpecificPart = async (req, res, next) => {
         return next(new Error("novel not found", { cause: 404 }));
     }
 
-    const part = await PartModel.findOne({ _id: req.params.partId, novelId: req.params.novelId });
+    const part = await PartModel.findOne({ _id: req.params.partId, novelId: req.params.novelId }).populate('Comments');
     if (!part.readers.includes(req.user._id)) {
         part.readers.push(req.user._id);
         novel.readersCount += 1
@@ -106,8 +106,16 @@ export const publishPart = async (req, res, next) => {
     if (novel.status == 'Draft') {
         return next(new Error("can not publish part, novel should publish first", { cause: 400 }));
     }
-    const PublishPart = await PartModel.findOneAndUpdate({ novelId: req.params.novelId, createdBy: req.user._id, _id: req.params.partId }, { status: 'Publish' }, { new: true });
-    return res.status(201).json({ message: 'success', PublishPart });
+
+    const PublishPart = await PartModel.findOne({ novelId: req.params.novelId, createdBy: req.user._id, _id: req.params.partId });
+    if (PublishPart.status== 'Publish' ) {
+        return next(new Error("part already published", { cause: 409 }));
+    }
+    PublishPart.status='Publish';
+    await PublishPart.save()
+    novel.partCount+=1;
+    await novel.save();
+    return res.status(201).json({ message: 'success', PublishPart,partCount:novel.partCount });
 }
 
 export const unPublishPart = async (req, res, next) => {
@@ -115,8 +123,15 @@ export const unPublishPart = async (req, res, next) => {
     if (!novel) {
         return next(new Error("novel not found", { cause: 404 }));
     }
-    const unPublishPart = await PartModel.findOneAndUpdate({ createdBy: req.user._id, _id: req.params.partId, novelId: req.params.novelId }, { status: 'Draft' }, { new: true });
-    return res.status(201).json({ message: 'success', unPublishPart });
+    const unPublishPart =  await PartModel.findOne({ novelId: req.params.novelId, createdBy: req.user._id, _id: req.params.partId });
+    if (unPublishPart.status== 'Draft' ) {
+        return next(new Error("part already Draft", { cause: 409 }));
+    }
+    unPublishPart.status='Draft';
+    await unPublishPart.save()
+    novel.partCount-=1;
+    await novel.save();
+    return res.status(201).json({ message: 'success', unPublishPart,partCount:novel.partCount });
 }
 
 export const likeUnlike = async (req, res, next) => {

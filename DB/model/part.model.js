@@ -35,9 +35,9 @@ const PartSchema = new Schema(
             type: String,
             default: null
         },
-        likesNumber:{
-            type:Number,
-            default:0
+        likesNumber: {
+            type: Number,
+            default: 0
         },
         likes: [
             {
@@ -45,9 +45,9 @@ const PartSchema = new Schema(
                 ref: 'User'
             }
         ],
-        commentsCount:{
-            type:Number,
-            default:0
+        commentsCount: {
+            type: Number,
+            default: 0
         },
         novelId: {
             type: Types.ObjectId,
@@ -55,9 +55,17 @@ const PartSchema = new Schema(
             require: true
         }
     }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 }
 )
+
+PartSchema.virtual('Comments', {
+    localField: '_id',
+    foreignField: 'partId',
+    ref: 'Comment'
+})
 
 const PartModel = mongoose.models.Part || model('Part', PartSchema);
 export default PartModel;
