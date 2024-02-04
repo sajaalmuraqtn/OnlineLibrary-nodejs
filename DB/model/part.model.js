@@ -45,6 +45,10 @@ const PartSchema = new Schema(
                 ref: 'User'
             }
         ],
+        commentsCount:{
+            type:Number,
+            default:0
+        },
         novelId: {
             type: Types.ObjectId,
             ref: 'Novel',

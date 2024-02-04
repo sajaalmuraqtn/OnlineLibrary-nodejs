@@ -6,15 +6,24 @@ const commentSchema=new Schema(
             type:String,
             require:true
         },
-        userId:{
+        createdBy:{
             type:Types.ObjectId,
             ref:'User',
+            require:true
+        },
+        createdByName:{
+            type:String,
             require:true
         },
         partId:{
             type:Types.ObjectId,
             ref:'Part',
             require:true
+        },
+        novelId: {
+            type: Types.ObjectId,
+            ref: 'Novel',
+            require: true
         }
     },{
         timestamps:true 

@@ -5,6 +5,7 @@ import { customAlphabet } from "nanoid";
 import { sendEmail } from '../../../Services/email.js';
 import PartModel from "../../../../DB/model/part.model.js";
 import UserModel from "../../../../DB/model/user.model.js";
+import CommentModel from "../../../../DB/model/comment.model.js";
 
 
 export const createNovel = async (req, res, next) => {
@@ -107,16 +108,16 @@ export const removeNovelFromMyLibrary = async (req, res, next) => {
         return next(new Error("novel not found", { cause: 404 }));
     }
     const user = await UserModel.findById(req.user._id)
-    
+
     for (let index = 0; index < user.library.length; index++) {
         if (user.library[index].novelId == req.params.novelId) {
-            const user = await UserModel.findByIdAndUpdate(req.user._id, { $pull: { library: { image: novel.image, title: novel.title, createdBy: novel.createdBy, createdByName: novel.createdByName, novelId: req.params.novelId } } },{new:true})
+            const user = await UserModel.findByIdAndUpdate(req.user._id, { $pull: { library: { image: novel.image, title: novel.title, createdBy: novel.createdBy, createdByName: novel.createdByName, novelId: req.params.novelId } } }, { new: true })
             return res.status(201).json({ message: 'success', library: user.library });
         }
     }
     return next(new Error("novel not exist in your library", { cause: 409 }));
- }
- 
+}
+
 
 export const publishNovel = async (req, res, next) => {
     const PublishNovel = await NovelModel.findOneAndUpdate({ createdBy: req.user._id, _id: req.params.novelId }, { status: 'Publish' }, { new: true });
@@ -145,9 +146,10 @@ export const deleteNovel = async (req, res, next) => {
     const deleteCode = req.body.deleteCode;
     const deleteNovel = await NovelModel.findOneAndDelete({ _id: req.params.novelId, createdBy: req.user._id, deleteCode });
     const deleteParts = await PartModel.deleteMany({ createdBy: req.user._id, novelId: req.params.novelId });
+    const deleteComments = await CommentModel.deleteMany({ novelId: req.params.novelId, createdBy: req.user._id });
 
     if (!deleteNovel) {
         return next(new Error("novel not found", { cause: 404 }));
     }
-    return res.status(201).json({ message: 'success', deleteNovel, deleteParts });
+    return res.status(201).json({ message: 'success', deleteNovel, deleteParts,deleteComments });
 }                           

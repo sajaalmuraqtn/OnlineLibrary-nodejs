@@ -4,6 +4,7 @@ import NovelModel from "../../../../DB/model/novel.model.js";
 import cloudinary from "../../../Services/cloudinary.js";
 import { customAlphabet } from "nanoid";
 import { sendEmail } from '../../../Services/email.js';
+import CommentModel from "../../../../DB/model/comment.model.js";
 
 
 export const createPart = async (req, res, next) => {
@@ -78,7 +79,7 @@ export const getAllPart = async (req, res, next) => {
     }
     return res.status(201).json({ message: 'success', Parts });
 }
- 
+
 
 export const getSpecificPart = async (req, res, next) => {
     const novel = await NovelModel.findById(req.params.novelId);
@@ -134,13 +135,13 @@ export const likeUnlike = async (req, res, next) => {
     }
 
     if (part.likes.includes(req.user._id)) {
-        const unLike = await PartModel.findOneAndUpdate({ _id: req.params.partId, novelId: req.params.novelId }, { $pull: { likes: req.user._id } ,$inc:{likesNumber:-1}}, { new: true });
+        const unLike = await PartModel.findOneAndUpdate({ _id: req.params.partId, novelId: req.params.novelId }, { $pull: { likes: req.user._id }, $inc: { likesNumber: -1 } }, { new: true });
         novel.favoritesCount -= 1
         await novel.save()
         return res.status(201).json({ message: 'success', unLike, favoritesCountNovel: novel.favoritesCount });
     }
 
-    const like = await PartModel.findOneAndUpdate({ _id: req.params.partId, novelId: req.params.novelId }, { $addToSet: { likes: req.user._id },$inc:{likesNumber:1} }, { new: true });
+    const like = await PartModel.findOneAndUpdate({ _id: req.params.partId, novelId: req.params.novelId }, { $addToSet: { likes: req.user._id }, $inc: { likesNumber: 1 } }, { new: true });
     novel.favoritesCount += 1
     await novel.save()
     return res.status(201).json({ message: 'success', like, favoritesCountNovel: novel.favoritesCount });
@@ -151,6 +152,11 @@ export const sendDeletePartCode = async (req, res, next) => {
     if (!novel) {
         return next(new Error("novel not found", { cause: 404 }));
     }
+
+    const part = await PartModel.findOne({ _id: req.params.partId, novelId: req.params.novelId, createdBy: req.user._id });
+    if (!part) {
+        return next(new Error("part not found", { cause: 404 }));
+    }
     const email = req.user.email;// to send email to the person 
 
     let code = customAlphabet('123456789abcdzABCDZ', 4);
@@ -158,16 +164,22 @@ export const sendDeletePartCode = async (req, res, next) => {
 
     const html = `<h2>delete Part code : ${code}</h2>`
     sendEmail(email, 'delete Part code', html);
-    await PartModel.findOneAndUpdate({ createdBy: req.user._id, _id: req.params.partId,novelId:req.params.novelId}, { deleteCode: code }, { new: true });
+    await PartModel.findOneAndUpdate({ createdBy: req.user._id, _id: req.params.partId, novelId: req.params.novelId }, { deleteCode: code }, { new: true });
     return res.redirect(process.env.FORGOTPASSWORDFORM);
 }
 
 export const deletePart = async (req, res, next) => {
-    const deleteCode = req.body.deleteCode;
-    const deletePart = await PartModel.findOneAndDelete({ _id: req.params.partId, createdBy: req.user._id, deleteCode });
-
-    if (!deletePart) {
+    const novel = await NovelModel.findOne({ _id: req.params.novelId, createdBy: req.user._id });
+    if (!novel) {
         return next(new Error("novel not found", { cause: 404 }));
     }
-    return res.status(201).json({ message: 'success', deleteNovel, deleteParts });
+
+    const deleteCode = req.body.deleteCode;
+    const deletePart = await PartModel.findOneAndDelete({ _id: req.params.partId, novelId: req.params.novelId, createdBy: req.user._id, deleteCode });
+    const deleteComments = await CommentModel.deleteMany({ partId: req.params.partId, novelId: req.params.novelId, createdBy: req.user._id });
+
+    if (!deletePart) {
+        return next(new Error("part not found", { cause: 404 }));
+    }
+    return res.status(201).json({ message: 'success', deletePart ,deleteComments});
 }                           
