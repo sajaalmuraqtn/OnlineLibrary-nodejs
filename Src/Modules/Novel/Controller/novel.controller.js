@@ -115,9 +115,7 @@ export const addNovelToMyLibrary = async (req, res, next) => {
     if (!novel) {
         return next(new Error("novel not found", { cause: 404 }));
     }
-    const user = await UserModel.findById(req.user._id)
-
-    /////////////////////////////////////////////////////
+    const user = await UserModel.findById(req.user._id);
 
     for (let index = 0; index < user.library.length; index++) {
         if (user.library[index].novelId == req.params.novelId) {
